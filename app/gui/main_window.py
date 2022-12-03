@@ -1,5 +1,5 @@
 import numpy as np
-from PIL import Image
+import PIL.Image
 from tkinter import *
 from tkinter import filedialog as fd
 from tkinter.messagebox import showinfo, showerror
@@ -11,20 +11,20 @@ from .editor_window import EditorWindow
 import cv2
 
 class MainWindow:
-    def __init__(self, master: Tk, image_editor: ImageEditor):
+    def __init__(self, image_editor: ImageEditor):
         self.image_editor = image_editor
-        self.master = master
+        self.master = Tk()
         self.selected_image_path = None
         self.master.geometry("400x400")
         self.file_dialog_bt = Button(
-            master, text="Choose an image", command=self._select_file_dialog
+            self.master, text="Choose an image", command=self._select_file_dialog
         )
         self.file_dialog_bt.pack()
         self.start_bt = Button(
-            master, text="Start", command=self.start, foreground="red"
+            self.master, text="Start", command=self.start, foreground="red"
         )
         self.start_bt.pack()
-        # master.mainloop()
+        self.master.mainloop()
 
     def _select_file_dialog(self):
         filename = fd.askopenfilename(
@@ -37,14 +37,14 @@ class MainWindow:
         if not self.selected_image_path:
             showerror(title="There is no image", message="You did not choose an image to edit")
             return
-        root = Tk()
-        # pil_image = Image.open("robot_football.jpg").convert('RGB')
-        # selected_image = np.array(pil_image)
+        # self.master.destroy()
+        pil_image = PIL.Image.open("robot_football.jpg").convert('RGB')
+        selected_image = np.array(pil_image)
 
-        selected_image = cv2.imread(self.selected_image_path)
+        # selected_image = cv2.imread(self.selected_image_path)
 
-        EditorWindow(root, main_image=selected_image)
-        root.mainloop()
+        EditorWindow(main_image=selected_image)
+
         # should be moved to another function
 
         """
@@ -56,4 +56,3 @@ class MainWindow:
             apply the corresponding action
             update gui
         """
-        self.master.destroy()
