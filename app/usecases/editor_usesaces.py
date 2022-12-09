@@ -8,6 +8,6 @@ class EditorUS:
         self.image_controller = image_controller
 
     def blur(self, image: NDArray, kernel_size: Tuple[int, int] = (3, 3)):
-        if not image:
+        if image is None:
             raise ValueError("Image should not be null")
         return self.image_controller.blur(image, kernel_size)

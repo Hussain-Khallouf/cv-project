@@ -10,6 +10,7 @@ from .editor_window import EditorWindow
 
 import cv2
 
+
 class MainWindow:
     def __init__(self, image_editor: ImageEditor):
         self.image_editor = image_editor
@@ -35,10 +36,12 @@ class MainWindow:
 
     def start(self):
         if not self.selected_image_path:
-            showerror(title="There is no image", message="You did not choose an image to edit")
+            showerror(
+                title="There is no image", message="You did not choose an image to edit"
+            )
             return
         # self.master.destroy()
-        pil_image = PIL.Image.open("robot_football.jpg").convert('RGB')
+        pil_image = PIL.Image.open("robot_football.jpg").convert("RGB")
         selected_image = np.array(pil_image)
 
         # selected_image = cv2.imread(self.selected_image_path)
