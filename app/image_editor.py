@@ -41,7 +41,7 @@ class ImageEditor:
 
     def translate(self):
         self._actions_repo.push(Actions.TRANSLATE.value, {})
-        
+
     def rotate(self):
         self._actions_repo.push(Actions.ROATTE.value, {})
 

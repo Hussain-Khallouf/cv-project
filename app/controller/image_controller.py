@@ -12,10 +12,7 @@ class ImageController:
         return cv.blur(image, kernel_size)
 
     def translate(self, image: NDArray, x: int, y: int):
-        M = np.float32([
-            [1, 0, x],
-            [0, 1, y]
-        ])
+        M = np.float32([[1, 0, x], [0, 1, y]])
         shifted = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
         return shifted
 
@@ -34,9 +31,8 @@ class ImageController:
         X & Y should be between 0  and 1
         """
         rows, cols, dim = image.shape
-        M = np.float32([[1, x, 0],
-                        [y, 1, 0],
-                        [0, 0, 1]])
+        M = np.float32([[1, x, 0], [y, 1, 0], [0, 0, 1]])
         sheared_img = cv.warpPerspective(
-            image, M, (int(cols*(1+x)), int(rows*(1+y))))
+            image, M, (int(cols * (1 + x)), int(rows * (1 + y)))
+        )
         return sheared_img

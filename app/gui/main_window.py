@@ -1,7 +1,6 @@
-import cv2
+import cv2 as cv
 import numpy as np
 from tkinter import *
-from tkinter import ttk
 from numpy._typing import NDArray
 from PIL import ImageTk, Image as PILImage
 from threading import Thread
@@ -10,23 +9,22 @@ from tkinter.messagebox import showinfo, showerror
 
 from app.config import config
 from app.image_editor import ImageEditor
-from app.strategies.gestures_detection_strategy import  GestureDetectionStrategy
-from app.config.config import gesture2action
+from app.strategies.gestures_detection_strategy import GestureDetectionStrategy
+
+
 class MainWindow:
     def __init__(self, image_editor: ImageEditor = None):
-
-        # TODO: must be moved to deps
+        self.camera_frame_size = (1280, 720)
         self.gesture_strategy = GestureDetectionStrategy()
-
-        self.WORK_PLACE_WIDTH = 1020
-        self.WORK_PLACE_HEIGHT = 840
 
         self.image_editor = image_editor
         self.master = Tk()
         self.master.title("cv-project")
         screen_width = self.master.winfo_screenwidth()
         screen_height = self.master.winfo_screenheight()
-        self.master.geometry(f'{screen_width}x{screen_height}')
+        self.WORK_PLACE_WIDTH = int(screen_width * 0.8)
+        self.WORK_PLACE_HEIGHT = int(screen_height * 0.95)
+        self.master.geometry(f"{screen_width}x{screen_height}")
         self.master.resizable(True, True)
 
         self.file_dialog_bt = Button(
@@ -39,39 +37,51 @@ class MainWindow:
         )
         self.start_bt.place(relx=0.01, rely=0.45)
         self.save_bt = Button(
-            self.master, text="Save", command=self.save, foreground="green", state=DISABLED
+            self.master,
+            text="Save",
+            command=self.save,
+            foreground="green",
+            state=DISABLED,
         )
         self.save_bt.place(relx=0.01, rely=0.5)
 
         self.workplace_label = Label(self.master, text="Image")
         self.workplace_label.pack(side=TOP, anchor="e", padx=2, pady=2)
 
-        self.camera_label = Label(self.master, text="Camera", )
+        self.camera_label = Label(
+            self.master,
+            text="Camera",
+        )
         self.camera_label.place(x=0, y=0)
 
         self.selected_image_path = None
-        self.workplace = np.zeros((self.WORK_PLACE_HEIGHT, self.WORK_PLACE_WIDTH, 3), dtype=np.uint8)
+        self.workplace = np.zeros(
+            (self.WORK_PLACE_HEIGHT, self.WORK_PLACE_WIDTH, 3), dtype=np.uint8
+        )
 
         self._update_workplace_label(self.workplace)
 
         self.master.mainloop()
 
     def _set_image_in_workplace(self, image: NDArray):
-        if self.WORK_PLACE_WIDTH < image.shape[1] or self.WORK_PLACE_HEIGHT < image.shape[0]:
+        if (
+                self.WORK_PLACE_WIDTH < image.shape[1]
+                or self.WORK_PLACE_HEIGHT < image.shape[0]
+        ):
             raise ValueError("Dimensions Error")
-        self.workplace[:image.shape[0], :image.shape[1], :] = image
+        self.workplace[: image.shape[0], : image.shape[1], :] = image
 
     def _tuning_image_scale(self, image: NDArray):
         if self.WORK_PLACE_WIDTH < image.shape[1]:
             scale = image.shape[1] / self.WORK_PLACE_WIDTH
             new_width = int(image.shape[1] / scale)
             new_height = int(image.shape[0] / scale)
-            image = cv2.resize(image, (new_width, new_height))
+            image = cv.resize(image, (new_width, new_height))
         if self.WORK_PLACE_HEIGHT < image.shape[0]:
             scale = image.shape[1] / self.WORK_PLACE_HEIGHT
             new_width = int(image.shape[1] / scale)
             new_height = int(image.shape[0] / scale)
-            image = cv2.resize(image, (new_width, new_height))
+            image = cv.resize(image, (new_width, new_height))
         return image
 
     def _select_file_dialog(self):
@@ -82,7 +92,9 @@ class MainWindow:
         self.selected_image_path = filename
         self._set_image_filepath(self.selected_image_path)
 
-    def _npimage2tkimage(self, image: NDArray):  # convert from NDArray to ImageTk from viewing on image label
+    def _npimage2tkimage(
+            self, image: NDArray
+    ):  # convert from NDArray to ImageTk from viewing on image label
         b, g, r = image[:, :, 0], image[:, :, 1], image[:, :, 2]  # For RGB image
         img = np.dstack([r, g, b])
         im = PILImage.fromarray(img)
@@ -94,44 +106,83 @@ class MainWindow:
 
     def _update_workplace_label(self, image: NDArray):
         tk_image = self._npimage2tkimage(image)
-        self.workplace = np.zeros((self.WORK_PLACE_HEIGHT, self.WORK_PLACE_WIDTH, 3), dtype=np.uint8)
+        self.workplace = np.zeros(
+            (self.WORK_PLACE_HEIGHT, self.WORK_PLACE_WIDTH, 3), dtype=np.uint8
+        )
         self.workplace_label.configure(image=tk_image)
         self.workplace_label.image = tk_image
 
     def _set_image_filepath(self, filepath):
-        image = cv2.imread(filepath)
+        image = cv.imread(filepath)
         image = self._tuning_image_scale(image)
         self._set_image_in_workplace(image)
         self._update_workplace_label(self.workplace)
 
     def run(self):
-        capture = cv2.VideoCapture(0)
-        # capture.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
-        # capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+        hist = self.tuning_hist()
+        capture = cv.VideoCapture(0)
+
         if capture.isOpened():
             while True:
                 flag, frame = capture.read()
-                # TODO: 1 recognize hand gesture for "frame" using
-                gesture = self.gesture_strategy.detect(frame)
+                frame = cv.flip(frame, 1)
+                try:
+                    frame, fingers = self.gesture_strategy.detect(frame, hist)
+                    print(fingers)
+                except:
+                    continue
                 # TODO: 2 apply the corresponding action
-                action = gesture2action.get(gesture.value, None)
+                # action = gesture2action.get(gesture.value, None)
                 # TODO: 3 Update self.workpalce using "_update_workplace_label" function
 
-
-                camera_image = cv2.resize(frame, (310, 240))
+                camera_image = cv.resize(frame, (310, 240))
                 tk_image = self._npimage2tkimage(camera_image)
                 self._set_camera_image(tk_image)
+                cv.waitKey(10)
+
+    def tuning_hist(self):
+        capture = cv.VideoCapture(0)
+        ROI_start_position = (1000, 100)
+        ROI_end_position = (1200, 300)
+        roihist = None
+        if capture.isOpened():
+            while True:
+                flag, frame = capture.read()
+                if not flag:
+                    break
+                frame = cv.flip(frame, 1)
+                frame = cv.resize(frame, self.camera_frame_size)
+                if cv.waitKey(1) == ord("z"):
+                    roi = frame.copy()[
+                          ROI_start_position[1]: ROI_end_position[1],
+                          ROI_start_position[0]: ROI_end_position[0],
+                          ]
+                    roi = cv.resize(roi, self.camera_frame_size)
+                    hsv = cv.cvtColor(roi, cv.COLOR_BGR2HSV)
+                    roihist = cv.calcHist(
+                        [hsv], [0, 1], None, [180, 256], [0, 180, 0, 256]
+                    )
+                    roihist = cv.normalize(roihist, roihist, 0, 255, cv.NORM_MINMAX)
+                    break
+                cv.rectangle(
+                    frame, ROI_start_position, ROI_end_position, (0, 0, 255), 2
+                )
+                cv.imshow("frame", frame)
+            capture.release()
+            cv.destroyAllWindows()
+        return roihist
 
     def start(self):
-        if not self.selected_image_path:
-            showerror(
-                title="There is no image", message="You did not choose an image to edit"
-            )
-            return
+        # if not self.selected_image_path:
+        #     showerror(
+        #         title="There is no image", message="You did not choose an image to edit"
+        #     )
+        #     return
 
         self.file_dialog_bt["state"] = "disabled"
         self.save_bt["state"] = "active"
         self.image_editor.set_image(self.workplace)
+
         Thread(target=self.run).start()
 
     def save(self):

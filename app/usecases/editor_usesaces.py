@@ -22,4 +22,4 @@ class EditorUS:
         return self.image_controller.scale(image, value)
 
     def skew(self, image: NDArray, x: int = 0.5, y: int = 0):
-        return self.image_controller.skew(image, x,  y)
+        return self.image_controller.skew(image, x, y)
