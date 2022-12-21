@@ -11,3 +11,9 @@ class EditorUS:
         if image is None:
             raise ValueError("Image should not be null")
         return self.image_controller.blur(image, kernel_size)
+
+    def left_translate(self, image: NDArray, value: int = 10):
+        return self.image_controller.translate(image, value, 0)
+
+    def right_translate(self, image: NDArray, value: int = 10):
+        return self.image_controller.translate(image, -value, 0)

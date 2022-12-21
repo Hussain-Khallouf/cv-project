@@ -4,15 +4,25 @@ global config and types
 
 from enum import Enum
 
+
 image_file_types = [("image files", ".png"), ("image files", ".jpg")]
 
-
 class Gestures(Enum):
-    like = "like"
+    LIKE = 0
+    TWO_FINGERS = 1
+
+
 
 
 class Actions(Enum):
-    blurring = "blurring"
+    TRANSLATE_LEFT = 1
+    TRANSLATE_RIGHT = 2
+    TRANSLATE_TOP = 3
+    TRANSLATE_BOTTOM = 4
+    BLURRING = 5
 
 
-gesture2action = {Gestures.like.value: Actions.blurring}
+gesture2action = {
+    Gestures.LIKE.value: Actions.BLURRING,
+    Gestures.TWO_FINGERS.value: Actions.TRANSLATE_TOP
+}
