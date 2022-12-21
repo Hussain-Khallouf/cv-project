@@ -23,7 +23,7 @@ class ImageEditor:
     def get_actions2func_dict(self, editor_uc):
         return {
             Actions.BLURRING.value: editor_uc.blur,
-            Actions.TRANSLATE_LEFT.value: editor_uc.left_translate,
+            Actions.TRANSLATE.value: editor_uc.translate,
         }
 
     def set_image(self, image: NDArray):
@@ -39,8 +39,11 @@ class ImageEditor:
     def blurring(self):
         self._actions_repo.push(Actions.BLURRING.value, {})
 
-    def left_translate(self):
-        self._actions_repo.push(Actions.TRANSLATE_LEFT.value, {})
+    def translate(self):
+        self._actions_repo.push(Actions.TRANSLATE.value, {})
+        
+    def rotate(self):
+        self._actions_repo.push(Actions.ROATTE.value, {})
 
     def _apply_actions(self, image: NDArray):
         edited_image = image

@@ -18,10 +18,8 @@ class MainWindow:
         # TODO: must be moved to deps
         self.gesture_strategy = GestureDetectionStrategy()
 
-
-
-        self.WORK_PLACE_WIDTH = 1600
-        self.WORK_PLACE_HEIGHT = 1400
+        self.WORK_PLACE_WIDTH = 1020
+        self.WORK_PLACE_HEIGHT = 840
 
         self.image_editor = image_editor
         self.master = Tk()

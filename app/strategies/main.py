@@ -1,29 +1,22 @@
-import cv2 as cv
-import numpy as np
-from numpy._typing import NDArray
-from app.config import config
+import traceback
+from cv2 import Mat
 from gestures_detectors import GesturesDetectors
 from haar import HaarCasCade
 from back_projection import BackProjection
 from helper import HelperCV
+import cv2 as cv
+import numpy as np
+esc_key = 27
 
 
-class GestureDetectionStrategy:
-
-    def __init__(self):
-        self.fingers = 0
-
-    """
-    abstract class for strategy design pattern
-    you can implement gesture detection strategy as many as you want by inheriting from  this class
-    """
-
-    def detect(self, frame: NDArray) -> config.Gestures:
+def main():
+    cap = cv.VideoCapture(0)
+    backProjection = BackProjection(kernel_size=(7, 7))
+    haarCasCade = HaarCasCade()
+    gestures_detectors = GesturesDetectors()
+    while cap.isOpened():
         pressed_key = cv.waitKey(1)
-        backProjection = BackProjection(kernel_size=(7, 7))
-        haarCasCade = HaarCasCade()
-        gestures_detectors = GesturesDetectors()
-
+        _, frame = cap.read()
         frame = cv.resize(frame, backProjection.size)
         mask_cascade = haarCasCade.apply(frame)
         thresh, view = backProjection.apply(frame, pressed_key)
@@ -37,10 +30,23 @@ class GestureDetectionStrategy:
         try:
             max_contour, convexhull, frame = HelperCV.draw_convex_hull(
                 frame, thresh[:, :, 0])
-            self.fingers = gestures_detectors.calculate_fingers(
+            fingers = gestures_detectors.calculate_fingers(
                 frame, convexhull, max_contour)
-            frame = HelperCV.draw_text(frame, f"{self.fingers}")
+            frame = HelperCV.draw_text(frame, f"{fingers}")
         except Exception as e:
             print(e)
+            print(traceback.format_exc())
 
-        return config.Gestures(self.fingers)
+        view_stack = np.concatenate((
+            frame, mask_cascade, thresh, view), axis=1)
+
+        cv.imshow("The View", view_stack)
+
+        if HelperCV.is_pressed(pressed_key, "q") or HelperCV.is_pressed(pressed_key, esc_key):
+            break
+
+    cv.destroyAllWindows()
+
+
+if __name__ == "__main__":
+    main()

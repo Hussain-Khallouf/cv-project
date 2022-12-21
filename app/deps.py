@@ -4,7 +4,7 @@ from app.controller.image_controller import ImageController
 from app.image_editor import ImageEditor
 from app.strategies.gestures_detection_strategy import (
     GestureDetectionStrategy,
-    MLGestureDetectionStrategy,
+    # MLGestureDetectionStrategy,
 )
 
 
@@ -20,5 +20,5 @@ def get_image_editor():
     return ImageEditor(editor_uc=get_editor_usecases())
 
 
-def get_gesture_detection_strategy() -> GestureDetectionStrategy:
-    return MLGestureDetectionStrategy()
+# def get_gesture_detection_strategy() -> GestureDetectionStrategy:
+#     return MLGestureDetectionStrategy()
