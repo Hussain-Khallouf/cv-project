@@ -1,6 +1,6 @@
 import cv2 as cv
 from cv2 import Mat
-
+import numpy as np
 
 class FaceHaarCasade:
     def __init__(
@@ -15,16 +15,13 @@ class FaceHaarCasade:
         self.color = color
 
     def remove_faces(self, frame: Mat, thinkess=10):
-        gray_frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        copy = frame.copy()
+        white = np.zeros(copy.shape[:2], np.uint8)
+        white[:] = 255
+        gray_frame = cv.cvtColor(copy, cv.COLOR_BGR2GRAY)
         faces = self.face_cascade.detectMultiScale(
-            gray_frame, scaleFactor=1.05, minNeighbors=5, minSize=(40, 40)
-        )
+            gray_frame, scaleFactor=1.05, minNeighbors=5, minSize=(40, 40))
         for (x, y, w, h) in faces:
-            cv.rectangle(
-                frame,
-                (x - thinkess, y - thinkess),
-                (x + w + thinkess, y + h + thinkess),
-                (0, 0, 0),
-                -1,
-            )
-        return frame
+            cv.rectangle(white, (x - thinkess, y - thinkess), (x + w + thinkess,
+                                                               y + h + thinkess), 0, -1)
+        return white

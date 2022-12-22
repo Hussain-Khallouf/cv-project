@@ -44,13 +44,28 @@ class MainWindow:
             state=DISABLED,
         )
         self.save_bt.place(relx=0.01, rely=0.5)
-        self.action_bt = Button(
+        self.translate_bt = Button(
             self.master,
-            text="action",
-            command=self.bt_action,
+            text="translate",
+            command=self.bt_tr,
             foreground="green",
         )
-        self.action_bt.place(relx=0.01, rely=0.6)
+        self.translate_bt.place(relx=0.01, rely=0.6)
+
+        self.rotate_bt = Button(
+            self.master,
+            text="rotate",
+            command=self.bt_ro,
+            foreground="green",
+        )
+        self.rotate_bt.place(relx=0.01, rely=0.7)
+        self.scale_bt = Button(
+            self.master,
+            text="scale",
+            command=self.bt_sc,
+            foreground="green",
+        )
+        self.scale_bt.place(relx=0.01, rely=0.8)
 
         self.workplace_label = Label(self.master, text="Image")
         self.workplace_label.pack(side=TOP, anchor="e", padx=2, pady=2)
@@ -70,8 +85,14 @@ class MainWindow:
 
         self.master.mainloop()
 
-    def bt_action(self):
+    def bt_tr(self):
+        self.image_editor.add_action(config.Actions.TRANSLATE_HORIZONTAL, {})
+
+    def bt_ro(self):
         self.image_editor.add_action(config.Actions.ROTATE, {})
+
+    def bt_sc(self):
+        self.image_editor.add_action(config.Actions.SCALE, {})
 
     def _set_image_in_workplace(self, image: NDArray):
         # if (
@@ -81,7 +102,6 @@ class MainWindow:
         #     raise ValueError("Dimensions Error")
         h, w = image.shape[:2]
         h1, w1 = self.workplace.shape[:2]
-
 
         rows = max(h1, h) - h
         cols = max(w1, w) - w
@@ -100,6 +120,7 @@ class MainWindow:
         xoff = round((w - w1) / 2)
 
         self.workplace = image[yoff:yoff + h1, xoff:xoff + w1]
+
     def _tuning_image_scale(self, image: NDArray):
         if self.WORK_PLACE_WIDTH < image.shape[1]:
             scale = image.shape[1] / self.WORK_PLACE_WIDTH
@@ -181,6 +202,12 @@ class MainWindow:
             cv.destroyAllWindows()
         return roihist
 
+    def apl_action(self, fingers):
+        if fingers == 1:
+            self.image_editor.add_action(config.Actions.TRANSLATE_HORIZONTAL, {})
+        if fingers == 2:
+            self.image_editor.add_action(config.Actions.ROTATE, {})
+
     def run(self):
         hist = self.tuning_hist()
         capture = cv.VideoCapture(0)
@@ -194,10 +221,8 @@ class MainWindow:
                     frame, fingers = self.gesture_strategy.detect(frame, hist)
                 except:
                     continue
-                # if fingers == 1:
-                #     self.image_editor.add_action(config.Actions.TRANSLATE_HORIZONTAL, {})
-                # if fingers == 2:
-                #     self.image_editor.add_action(config.Actions.TRANSLATE_VERTICAL, {})
+                print(fingers)
+                # self.apl_action(fingers)
                 camera_image = cv.resize(frame, (310, 240))
                 tk_image = self._npimage2tkimage(camera_image)
                 self._set_camera_image(tk_image)
@@ -221,4 +246,5 @@ class MainWindow:
         Thread(target=self.run).start()
 
     def save(self):
-        pass
+        img = self.image_editor.get_edited_image()
+        cv.imwrite("edited.jpg", img)
