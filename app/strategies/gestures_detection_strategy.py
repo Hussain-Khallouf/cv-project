@@ -55,7 +55,6 @@ class GestureDetectionStrategy:
         mask = self.blur_image_with_hsv(frame)
         thresh = cv.bitwise_and(removed_face_frame, mask)
         thresh = cv.morphologyEx(thresh, cv.MORPH_OPEN, np.ones((3,3)))
-        cv.imshow('thresh', mask)
         max_contour, convexhull, frame = utils.draw_convex_hull(frame, thresh)
         frame, fingers = self.gestures_detectors.calculate_fingers(frame, convexhull, max_contour)
         return frame, fingers, self.gestures_detectors.center

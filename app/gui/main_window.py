@@ -203,14 +203,20 @@ class MainWindow:
         return roihist
 
     def apl_action(self, fingers, min_pos, max_pos):
+        difx = int((max_pos[0] - min_pos[0]) )
+        dify = int((max_pos[1] - min_pos[1]) )
+        valx = 10 if difx>0 else -10
+        valy = 10 if dify>0 else -10
+        if fingers == 1:
+            self.save()
         if fingers == 5:
             self.image_editor.add_action(config.Actions.TRANSLATE_HORIZONTAL,
-                                         {"value": int((max_pos[0] - min_pos[0]) * 0.1)})
+                                         {"value": valx })
             self.image_editor.add_action(config.Actions.TRANSLATE_VERTICAL,
-                                         {"value": int((max_pos[1] - min_pos[1]) * 0.1)})
+                                         {"value": valy})
         if fingers == 3:
             self.image_editor.add_action(config.Actions.ROTATE, {})
-        if fingers == 1:
+        if fingers == 2:
             self.image_editor.add_action(config.Actions.SCALE, {})
 
     def run(self):
@@ -232,11 +238,11 @@ class MainWindow:
                 frame_fingers.append(fingers)
                 if i == 0:
                     min_pos = center
-                if i >= 10:
+                if i >= 6:
                     max_pos = center
                     f = max(frame_fingers)
                     c = frame_fingers.count(f)
-                    if c >= 5:
+                    if c >= 2:
                         self.apl_action(f, min_pos, max_pos)
                     i = 0
                     frame_fingers = []
