@@ -71,7 +71,7 @@ class MainWindow:
         self.master.mainloop()
 
     def bt_action(self):
-        self.image_editor.add_action(config.Actions.ROTATE, {})
+        self.image_editor.add_action(config.Actions.SCALE, {})
 
     def _set_image_in_workplace(self, image: NDArray):
         if (
@@ -170,21 +170,23 @@ class MainWindow:
             while True:
                 flag, frame = capture.read()
                 frame = cv.flip(frame, 1)
+                # frame = cv.resize(frame, self.camera_frame_size)
                 try:
                     frame, fingers = self.gesture_strategy.detect(frame, hist)
                 except:
                     continue
-                if fingers == 1:
-                    print(fingers)
-                    # action = config.gesture2action.get(gesture.value, None)
-                    self.image_editor.add_action(config.Actions.TRANSLATE_HORIZONTAL, {})
+                # if fingers == 1:
+                #     self.image_editor.add_action(config.Actions.TRANSLATE_HORIZONTAL, {})
+                # if fingers == 2:
+                #     self.image_editor.add_action(config.Actions.TRANSLATE_VERTICAL, {})
                 camera_image = cv.resize(frame, (310, 240))
                 tk_image = self._npimage2tkimage(camera_image)
                 self._set_camera_image(tk_image)
 
                 edited_image = self.image_editor.get_edited_image()
-                edited_image = self._tuning_image_scale(edited_image)
-                self._set_image_in_workplace(edited_image)
+                # edited_image = self._tuning_image_scale(edited_image)
+                self._update_workplace_label(edited_image)
+                # self._set_image_in_workplace(edited_image)
                 cv.waitKey(10)
 
     def start(self):
@@ -196,7 +198,7 @@ class MainWindow:
 
         self.file_dialog_bt["state"] = "disabled"
         self.save_bt["state"] = "active"
-        # self.image_editor.set_image(self.workplace)
+        self.image_editor.set_image(self.workplace)
         Thread(target=self.run).start()
 
     def save(self):

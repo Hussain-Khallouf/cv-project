@@ -23,7 +23,7 @@ class ImageController:
     def scale(self, image: NDArray, value: int = 10):
         height, width, _ = image.shape
         dimension = (height + value, width + value)
-        scaled = cv.resize(image, dimension, interpolation=cv.INTER_AREA)
+        scaled = cv.resize(image, (dimension[1], dimension[0]), interpolation=cv.INTER_AREA)
         return scaled
 
     def skew(self, image: NDArray, x: float = 0.5, y: float = 0.0):
