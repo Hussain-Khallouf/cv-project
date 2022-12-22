@@ -17,7 +17,7 @@ class ImageController:
         return shifted
 
     def rotate(self, image: NDArray, angle: int = 15):
-        rotated = cv.rotate(image, angle)
+        rotated = cv.rotate(image, cv.ROTATE_90_COUNTERCLOCKWISE)# ROTATE_90_CLOCKWISE
         return rotated
 
     def scale(self, image: NDArray, value: int = 10):

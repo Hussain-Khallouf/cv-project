@@ -12,11 +12,14 @@ class EditorUS:
             raise ValueError("Image should not be null")
         return self.image_controller.blur(image, kernel_size)
 
-    def translate(self, image: NDArray, value: int = 10):
+    def translate_vertical(self, image: NDArray, value: int = 10):
+        return self.image_controller.translate(image,0, value)
+
+    def translate_horizontal(self, image: NDArray, value: int = 10):
         return self.image_controller.translate(image, value, 0)
 
-    def rotate(self, image: NDArray, value: int = 15):
-        return self.image_controller.rotate(image, value)
+    def rotate(self, image: NDArray, angle: int = 15):
+        return self.image_controller.rotate(image, angle)
 
     def scale(self, image: NDArray, value: int = 10):
         return self.image_controller.scale(image, value)

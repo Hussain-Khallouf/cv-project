@@ -15,15 +15,16 @@ class ImageEditor:
         self._edited_image = Image()
         self._editor_uc = editor_uc
         self._actions_repo: ActionsRepo = None
-        self.is_actions_applied = True
-        self.actions2func = self.get_actions2func_dict(
-            editor_uc
-        )  # self.actions2func["action"](**kwargs)
+        self.is_actions_applied = False
+        self.actions2func = self.get_actions2func_dict()
 
-    def get_actions2func_dict(self, editor_uc):
+    def get_actions2func_dict(self):
         return {
-            Actions.BLURRING.value: editor_uc.blur,
-            Actions.TRANSLATE.value: editor_uc.translate,
+            Actions.NO_ACTION.value: lambda image, kwargs: image,
+            Actions.BLURRING.value: self.blurring,
+            Actions.TRANSLATE_VERTICAL.value: self.translate_vertical,
+            Actions.TRANSLATE_HORIZONTAL.value: self.translate_horizontal,
+            Actions.ROTATE.value: self.rotate,
         }
 
     def set_image(self, image: NDArray):
@@ -36,28 +37,34 @@ class ImageEditor:
     def redo(self):
         self._actions_repo.redo()
 
-    def blurring(self):
-        self._actions_repo.push(Actions.BLURRING.value, {})
+    def blurring(self, image: NDArray, kwargs):
+        return self._editor_uc.blur(image, **kwargs)
 
-    def translate(self):
-        self._actions_repo.push(Actions.TRANSLATE.value, {})
+    def translate_vertical(self, image: NDArray, kwargs):
+        return self._editor_uc.translate_vertical(image, **kwargs)
 
-    def rotate(self):
-        self._actions_repo.push(Actions.ROATTE.value, {})
+    def translate_horizontal(self, image: NDArray, kwargs):
+        return self._editor_uc.translate_horizontal(image, **kwargs)
+
+    def rotate(self, image: NDArray, kwargs):
+        r = self._editor_uc.rotate(image, **kwargs)
+        return r
+    def add_action(self, action: Actions, kwargs):
+        self._actions_repo.push(action.value, kwargs)
+        self.is_actions_applied = False
 
     def _apply_actions(self, image: NDArray):
         edited_image = image
         for action, kwargs in self._actions_repo.get_actions():
             edited_image = self.actions2func.get(
                 action, lambda: print("Not Found Action")
-            )(image=edited_image, **kwargs)
+            )(image=edited_image, kwargs=kwargs)
         return edited_image
 
     def get_edited_image(self):
-        # TODO: add is_actions_applied flag for better performance For hussain
-        # if not self.is_actions_applied:
-        # image = self.original_image.get_image()
-        # new_edited_image = self._apply_actions(image)
-        # self._edited_image.set_image(new_edited_image)
-        # self.is_actions_applied = True
-        return self._apply_actions(self._original_image.get_image())
+        if not self.is_actions_applied:
+            image = self._original_image.get_image()
+            new_edited_image = self._apply_actions(image)
+            self._edited_image.set_image(new_edited_image)
+            self.is_actions_applied = True
+        return self._edited_image.get_image()

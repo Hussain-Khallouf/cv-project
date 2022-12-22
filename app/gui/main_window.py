@@ -14,7 +14,7 @@ from app.strategies.gestures_detection_strategy import GestureDetectionStrategy
 
 class MainWindow:
     def __init__(self, image_editor: ImageEditor = None):
-        self.camera_frame_size = (1280, 720)
+        self.camera_frame_size = (1280, 820)
         self.gesture_strategy = GestureDetectionStrategy()
 
         self.image_editor = image_editor
@@ -44,6 +44,13 @@ class MainWindow:
             state=DISABLED,
         )
         self.save_bt.place(relx=0.01, rely=0.5)
+        self.action_bt = Button(
+            self.master,
+            text="action",
+            command=self.bt_action,
+            foreground="green",
+        )
+        self.action_bt.place(relx=0.01, rely=0.6)
 
         self.workplace_label = Label(self.master, text="Image")
         self.workplace_label.pack(side=TOP, anchor="e", padx=2, pady=2)
@@ -62,6 +69,9 @@ class MainWindow:
         self._update_workplace_label(self.workplace)
 
         self.master.mainloop()
+
+    def bt_action(self):
+        self.image_editor.add_action(config.Actions.ROTATE, {})
 
     def _set_image_in_workplace(self, image: NDArray):
         if (
@@ -106,39 +116,18 @@ class MainWindow:
 
     def _update_workplace_label(self, image: NDArray):
         tk_image = self._npimage2tkimage(image)
-        self.workplace = np.zeros(
-            (self.WORK_PLACE_HEIGHT, self.WORK_PLACE_WIDTH, 3), dtype=np.uint8
-        )
+        # self.workplace = np.zeros(
+        #     (self.WORK_PLACE_HEIGHT, self.WORK_PLACE_WIDTH, 3), dtype=np.uint8
+        # )
         self.workplace_label.configure(image=tk_image)
         self.workplace_label.image = tk_image
 
     def _set_image_filepath(self, filepath):
         image = cv.imread(filepath)
         image = self._tuning_image_scale(image)
+        self.image_editor.set_image(image)
         self._set_image_in_workplace(image)
         self._update_workplace_label(self.workplace)
-
-    def run(self):
-        hist = self.tuning_hist()
-        capture = cv.VideoCapture(0)
-
-        if capture.isOpened():
-            while True:
-                flag, frame = capture.read()
-                frame = cv.flip(frame, 1)
-                try:
-                    frame, fingers = self.gesture_strategy.detect(frame, hist)
-                    print(fingers)
-                except:
-                    continue
-                # TODO: 2 apply the corresponding action
-                # action = gesture2action.get(gesture.value, None)
-                # TODO: 3 Update self.workpalce using "_update_workplace_label" function
-
-                camera_image = cv.resize(frame, (310, 240))
-                tk_image = self._npimage2tkimage(camera_image)
-                self._set_camera_image(tk_image)
-                cv.waitKey(10)
 
     def tuning_hist(self):
         capture = cv.VideoCapture(0)
@@ -152,6 +141,7 @@ class MainWindow:
                     break
                 frame = cv.flip(frame, 1)
                 frame = cv.resize(frame, self.camera_frame_size)
+
                 if cv.waitKey(1) == ord("z"):
                     roi = frame.copy()[
                           ROI_start_position[1]: ROI_end_position[1],
@@ -167,22 +157,46 @@ class MainWindow:
                 cv.rectangle(
                     frame, ROI_start_position, ROI_end_position, (0, 0, 255), 2
                 )
-                cv.imshow("frame", frame)
+                cv.imshow("tuning", frame)
             capture.release()
             cv.destroyAllWindows()
         return roihist
 
+    def run(self):
+        hist = self.tuning_hist()
+        capture = cv.VideoCapture(0)
+
+        if capture.isOpened():
+            while True:
+                flag, frame = capture.read()
+                frame = cv.flip(frame, 1)
+                try:
+                    frame, fingers = self.gesture_strategy.detect(frame, hist)
+                except:
+                    continue
+                if fingers == 1:
+                    print(fingers)
+                    # action = config.gesture2action.get(gesture.value, None)
+                    self.image_editor.add_action(config.Actions.TRANSLATE_HORIZONTAL, {})
+                camera_image = cv.resize(frame, (310, 240))
+                tk_image = self._npimage2tkimage(camera_image)
+                self._set_camera_image(tk_image)
+
+                edited_image = self.image_editor.get_edited_image()
+                edited_image = self._tuning_image_scale(edited_image)
+                self._set_image_in_workplace(edited_image)
+                cv.waitKey(10)
+
     def start(self):
-        # if not self.selected_image_path:
-        #     showerror(
-        #         title="There is no image", message="You did not choose an image to edit"
-        #     )
-        #     return
+        if not self.selected_image_path:
+            showerror(
+                title="There is no image", message="You did not choose an image to edit"
+            )
+            return
 
         self.file_dialog_bt["state"] = "disabled"
         self.save_bt["state"] = "active"
-        self.image_editor.set_image(self.workplace)
-
+        # self.image_editor.set_image(self.workplace)
         Thread(target=self.run).start()
 
     def save(self):
