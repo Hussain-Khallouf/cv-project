@@ -58,4 +58,4 @@ class GestureDetectionStrategy:
         cv.imshow('thresh', mask)
         max_contour, convexhull, frame = utils.draw_convex_hull(frame, thresh)
         frame, fingers = self.gestures_detectors.calculate_fingers(frame, convexhull, max_contour)
-        return frame, fingers
+        return frame, fingers, self.gestures_detectors.center

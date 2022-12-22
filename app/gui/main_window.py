@@ -202,12 +202,15 @@ class MainWindow:
             cv.destroyAllWindows()
         return roihist
 
-    def apl_action(self, fingers):
-        if fingers == 1:
-            self.image_editor.add_action(config.Actions.TRANSLATE_HORIZONTAL, {})
+    def apl_action(self, fingers, min_pos, max_pos):
+        if fingers == 5:
+            self.image_editor.add_action(config.Actions.TRANSLATE_HORIZONTAL,
+                                         {"value": int((max_pos[0] - min_pos[0]) * 0.1)})
+            self.image_editor.add_action(config.Actions.TRANSLATE_VERTICAL,
+                                         {"value": int((max_pos[1] - min_pos[1]) * 0.1)})
         if fingers == 3:
             self.image_editor.add_action(config.Actions.ROTATE, {})
-        if fingers == 5:
+        if fingers == 1:
             self.image_editor.add_action(config.Actions.SCALE, {})
 
     def run(self):
@@ -215,25 +218,29 @@ class MainWindow:
         capture = cv.VideoCapture(0)
         i = 0
         frame_fingers = []
+        min_pos, max_pos = None, None
         if capture.isOpened():
             while True:
                 flag, frame = capture.read()
                 frame = cv.flip(frame, 1)
                 # frame = cv.resize(frame, self.camera_frame_size)
                 try:
-                    frame, fingers = self.gesture_strategy.detect(frame, hist)
+                    frame, fingers, center = self.gesture_strategy.detect(frame, hist)
                     cv.putText(frame, str(fingers), (0, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv.LINE_AA)
                 except:
                     continue
                 frame_fingers.append(fingers)
+                if i == 0:
+                    min_pos = center
                 if i >= 10:
+                    max_pos = center
                     f = max(frame_fingers)
                     c = frame_fingers.count(f)
                     if c >= 5:
-                        self.apl_action(f)
+                        self.apl_action(f, min_pos, max_pos)
                     i = 0
                     frame_fingers = []
-                i+=1
+                i += 1
                 # self.apl_action(fingers)
                 camera_image = cv.resize(frame, (310, 240))
                 tk_image = self._npimage2tkimage(camera_image)

@@ -15,7 +15,9 @@ class EditorUS:
         return self.image_controller.blur(image, kernel_size)
 
     def translate_vertical(self, image: NDArray, value: int = 10):
-        return self.image_controller.translate(image,0, value)
+        return np.roll(image, value, axis=0)
+
+        # return self.image_controller.translate(image,0, value)
 
     def translate_horizontal(self, image: NDArray, value: int = 10):
         return np.roll(image, value, axis=1)
