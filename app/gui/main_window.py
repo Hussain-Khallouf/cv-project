@@ -205,13 +205,16 @@ class MainWindow:
     def apl_action(self, fingers):
         if fingers == 1:
             self.image_editor.add_action(config.Actions.TRANSLATE_HORIZONTAL, {})
-        if fingers == 2:
+        if fingers == 3:
             self.image_editor.add_action(config.Actions.ROTATE, {})
+        if fingers == 5:
+            self.image_editor.add_action(config.Actions.SCALE, {})
 
     def run(self):
         hist = self.tuning_hist()
         capture = cv.VideoCapture(0)
-
+        i = 0
+        frame_fingers = []
         if capture.isOpened():
             while True:
                 flag, frame = capture.read()
@@ -219,9 +222,18 @@ class MainWindow:
                 # frame = cv.resize(frame, self.camera_frame_size)
                 try:
                     frame, fingers = self.gesture_strategy.detect(frame, hist)
+                    cv.putText(frame, str(fingers), (0, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv.LINE_AA)
                 except:
                     continue
-                print(fingers)
+                frame_fingers.append(fingers)
+                if i >= 10:
+                    f = max(frame_fingers)
+                    c = frame_fingers.count(f)
+                    if c >= 5:
+                        self.apl_action(f)
+                    i = 0
+                    frame_fingers = []
+                i+=1
                 # self.apl_action(fingers)
                 camera_image = cv.resize(frame, (310, 240))
                 tk_image = self._npimage2tkimage(camera_image)
