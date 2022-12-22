@@ -71,16 +71,35 @@ class MainWindow:
         self.master.mainloop()
 
     def bt_action(self):
-        self.image_editor.add_action(config.Actions.SCALE, {})
+        self.image_editor.add_action(config.Actions.ROTATE, {})
 
     def _set_image_in_workplace(self, image: NDArray):
-        if (
-                self.WORK_PLACE_WIDTH < image.shape[1]
-                or self.WORK_PLACE_HEIGHT < image.shape[0]
-        ):
-            raise ValueError("Dimensions Error")
-        self.workplace[: image.shape[0], : image.shape[1], :] = image
+        # if (
+        #         self.WORK_PLACE_WIDTH < image.shape[1]
+        #         or self.WORK_PLACE_HEIGHT < image.shape[0]
+        # ):
+        #     raise ValueError("Dimensions Error")
+        h, w = image.shape[:2]
+        h1, w1 = self.workplace.shape[:2]
 
+
+        rows = max(h1, h) - h
+        cols = max(w1, w) - w
+
+        above = rows // 2
+        bottom = rows - above
+
+        left = cols // 2
+        right = cols - left
+
+        image = np.pad(image, ((above, bottom), (left, right), (0, 0)), 'constant', constant_values=0)
+
+        h, w = image.shape[:2]
+
+        yoff = round((h - h1) / 2)
+        xoff = round((w - w1) / 2)
+
+        self.workplace = image[yoff:yoff + h1, xoff:xoff + w1]
     def _tuning_image_scale(self, image: NDArray):
         if self.WORK_PLACE_WIDTH < image.shape[1]:
             scale = image.shape[1] / self.WORK_PLACE_WIDTH
@@ -125,9 +144,9 @@ class MainWindow:
     def _set_image_filepath(self, filepath):
         image = cv.imread(filepath)
         image = self._tuning_image_scale(image)
-        self.image_editor.set_image(image)
         self._set_image_in_workplace(image)
         self._update_workplace_label(self.workplace)
+        self.image_editor.set_image(self.workplace)
 
     def tuning_hist(self):
         capture = cv.VideoCapture(0)
@@ -185,8 +204,8 @@ class MainWindow:
 
                 edited_image = self.image_editor.get_edited_image()
                 # edited_image = self._tuning_image_scale(edited_image)
-                self._update_workplace_label(edited_image)
-                # self._set_image_in_workplace(edited_image)
+                self._set_image_in_workplace(edited_image)
+                self._update_workplace_label(self.workplace)
                 cv.waitKey(10)
 
     def start(self):

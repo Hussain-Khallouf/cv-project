@@ -1,4 +1,6 @@
 from typing import Tuple
+
+import numpy as np
 from numpy._typing import NDArray
 from app.controller.image_controller import ImageController
 
@@ -16,7 +18,8 @@ class EditorUS:
         return self.image_controller.translate(image,0, value)
 
     def translate_horizontal(self, image: NDArray, value: int = 10):
-        return self.image_controller.translate(image, value, 0)
+        return np.roll(image, value, axis=1)
+        # return self.image_controller.translate(image, value, 0)
 
     def rotate(self, image: NDArray, angle: int = 15):
         return self.image_controller.rotate(image, angle)
