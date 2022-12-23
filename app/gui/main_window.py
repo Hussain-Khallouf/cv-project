@@ -203,21 +203,25 @@ class MainWindow:
         return roihist
 
     def apl_action(self, fingers, min_pos, max_pos):
-        difx = int((max_pos[0] - min_pos[0]) )
-        dify = int((max_pos[1] - min_pos[1]) )
-        valx = 10 if difx>0 else -10
-        valy = 10 if dify>0 else -10
+        difx = int((max_pos[0] - min_pos[0]))
+        dify = int((max_pos[1] - min_pos[1]))
+        valx = 15 if difx > 0 else -15
+        valy = 15 if dify > 0 else -15
         if fingers == 1:
             self.save()
+
+            # self.master.destroy()
+        if fingers == 2:
+            self.image_editor.add_action(config.Actions.SCALE, {"value": valy})
+        if fingers == 3:
+            self.image_editor.add_action(config.Actions.ROTATE, {"angle": valx})
+        # if fingers == 4:
+            # self.image_editor.undo()
         if fingers == 5:
             self.image_editor.add_action(config.Actions.TRANSLATE_HORIZONTAL,
-                                         {"value": valx })
+                                         {"value": valx})
             self.image_editor.add_action(config.Actions.TRANSLATE_VERTICAL,
                                          {"value": valy})
-        if fingers == 3:
-            self.image_editor.add_action(config.Actions.ROTATE, {})
-        if fingers == 2:
-            self.image_editor.add_action(config.Actions.SCALE, {})
 
     def run(self):
         hist = self.tuning_hist()
@@ -231,14 +235,13 @@ class MainWindow:
                 frame = cv.flip(frame, 1)
                 # frame = cv.resize(frame, self.camera_frame_size)
                 try:
-                    frame, fingers, center = self.gesture_strategy.detect(frame, hist)
+                    frame, fingers, center, endpoint = self.gesture_strategy.detect(frame, hist)
                     cv.putText(frame, str(fingers), (0, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv.LINE_AA)
                 except:
                     continue
                 frame_fingers.append(fingers)
-                if i == 0:
-                    min_pos = center
-                if i >= 6:
+                # if i % 3 == 0:
+                if i >= 4:
                     max_pos = center
                     f = max(frame_fingers)
                     c = frame_fingers.count(f)
@@ -246,6 +249,9 @@ class MainWindow:
                         self.apl_action(f, min_pos, max_pos)
                     i = 0
                     frame_fingers = []
+                min_pos = center
+
+
                 i += 1
                 # self.apl_action(fingers)
                 camera_image = cv.resize(frame, (310, 240))

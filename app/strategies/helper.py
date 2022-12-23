@@ -88,6 +88,7 @@ class HelperCV:
                 final_point = point
         # Draw a circle (black color) to the point with the minimum y-value
         cv.circle(frame, final_point, 8, Colors.BLACK.value, 2)
+        return final_point
 
     @classmethod
     def caluclate_orentaion(cls, diff):

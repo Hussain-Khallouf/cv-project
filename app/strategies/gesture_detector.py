@@ -13,12 +13,14 @@ class GesturesDetectors:
         self.diff = (0, 0)
         self.orentation = ("static", "static")
         self.angles = []
+        self.endpoint = (0,0)
+
 
     def calculate_fingers(self, image, convexhull, max_contour):
         frame = image.copy()
 
         # draw black circle in above of the hand
-        HelperCV.draw_high_point_in_convexhull(frame, convexhull)
+        self.endpoint = HelperCV.draw_high_point_in_convexhull(frame, convexhull)
 
         # find center on the hand
         self.center = self.find_center_of_hand(max_contour)

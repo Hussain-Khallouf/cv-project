@@ -24,6 +24,7 @@ class ImageEditor:
             Actions.BLURRING.value: self.blurring,
             Actions.TRANSLATE_VERTICAL.value: self.translate_vertical,
             Actions.TRANSLATE_HORIZONTAL.value: self.translate_horizontal,
+            Actions.SKEW.value: self.skew,
             Actions.SCALE.value: self.scale,
             Actions.ROTATE.value: self.rotate,
         }
@@ -37,6 +38,8 @@ class ImageEditor:
 
     def redo(self):
         self._actions_repo.redo()
+
+
 
     def blurring(self, image: NDArray, kwargs):
         return self._editor_uc.blur(image, **kwargs)
@@ -53,6 +56,9 @@ class ImageEditor:
 
     def scale(self, image: NDArray, kwargs):
         return self._editor_uc.scale(image, **kwargs)
+
+    def skew(self, image: NDArray, kwargs):
+        return self._editor_uc.skew(image, **kwargs)
 
     def add_action(self, action: Actions, kwargs):
         self._actions_repo.push(action.value, kwargs)
